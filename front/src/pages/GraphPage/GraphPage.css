@@ -1,0 +1,509 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+body {
+  font-family: 'Inter';
+  margin: 0;
+  padding: 0;
+  background-color: #1e1e1e;
+}
+
+.App {
+  display: flex;
+  flex-direction: row;
+}
+
+.sidebarWrapper {
+  width: 40vw;
+  padding: 0 46px;
+  background-color: #191919;
+}
+
+.sidebar {
+  margin-top: 70px;
+  color: #fff;
+}
+
+.sidebar h1 {
+  font-size: 25px;
+  font-family: 'Inter';
+}
+
+input[type='date']::-webkit-inner-spin-button,
+input[type='date']::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.custom-date-input {
+  border-radius: 8px;
+  background-color: #131313;
+  border: none;
+  padding: 16px 8px;
+  color: #8f8f8f;
+  width: 100%;
+  background-image: url('../../images/Vector.svg');
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 18px 20px;
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+.custom-date-input:focus {
+  outline: none;
+}
+
+select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: #131313;
+  color: #8f8f8f;
+  border: none;
+  padding: 10px 20px;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%238F8F8F%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'),
+    linear-gradient(to bottom, #131313 0%, #131313 100%);
+  background-repeat: no-repeat, repeat;
+  background-position: right 10px center, 0 0;
+  background-size: 12px auto, 100%;
+  padding-right: 30px;
+}
+
+#apiKeyInput {
+  background-color: #131313;
+  border: none;
+  border-radius: 4px;
+  color: #8f8f8f;
+  padding: 5px 10px;
+}
+
+#apiKeyInput:focus {
+  outline: none;
+}
+
+select::-ms-expand {
+  display: none;
+}
+
+select option {
+  background-color: #191919;
+  color: #8f8f8f;
+}
+
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+#wallet-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#walletInput {
+  width: 100%;
+  font-size: 14px;
+  resize: none;
+  height: 230px;
+  overflow-y: scroll;
+  border: none;
+  background-color: #131313;
+  color: #8f8f8f;
+  padding: 10px;
+}
+
+#walletInput:focus {
+  outline: none;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #404040;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 14px;
+  background-color: #131313;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Inter';
+}
+
+.tools-icon {
+  text-align: center;
+  padding: 12px 24px;
+  border-radius: 10px;
+  background-color: #131313;
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#walletList {
+  list-style-type: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  height: 20vh;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+#walletList li {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.wallet-info {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  gap: 10px;
+}
+
+.wallet-address {
+  border-radius: 8px;
+  font-size: 12px;
+  padding: 16px 8px;
+  min-width: 300px;
+  background-color: #131313;
+  flex-grow: 1;
+}
+
+.wallet-label-input {
+  padding: 6px 2px;
+  text-align: center;
+  color: #ffffff;
+  border-radius: 8px;
+  border: none;
+  background-color: #8f8f8f;
+}
+
+.wallet-label-input::-webkit-input-placeholder {
+  color: #ffffff;
+}
+
+.wallet-label-input:focus {
+  outline: none;
+}
+
+.remove-wallet {
+  cursor: pointer;
+}
+
+.main-content {
+  width: 100%;
+  height: 100vh;
+}
+
+.wallet-image-controls {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#mynetwork {
+  width: 100%;
+  height: 100vh;
+}
+
+.context-menu {
+  position: absolute;
+  z-index: 1000;
+  width: 200px;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.context-menu ul {
+  list-style: none;
+  padding: 0;
+}
+
+.context-menu ul li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.context-menu ul li:hover {
+  background-color: #f5f5f5;
+}
+
+.importinput {
+  padding: 10px 20px;
+  font-size: 14px;
+  background-color: #131313;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.context-menu .submenu {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: 0;
+  z-index: 1000;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.context-menu li:hover > .submenu {
+  display: block;
+}
+
+.apiKeyInput {
+  padding: 5px;
+  width: 100%;
+  margin: 5px 0 5px 0;
+}
+
+.amount-filter-container {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+}
+
+.amount-block label {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.amount-block label input[type='number'] {
+  width: 80px;
+  border-radius: 4px;
+  padding: 2px;
+  background-color: #131313;
+  color: #8f8f8f;
+  border: none;
+  text-align: center;
+}
+
+.amount-block label input[type='range'] {
+  accent-color: #8f8f8f;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  cursor: ew-resize;
+  outline: none;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  box-shadow: none;
+  border: none;
+  background: transparent;
+}
+
+.amount-block label input[type='number']:focus {
+  outline: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.react-datepicker {
+  border: none !important;
+  background-color: #303030 !important;
+}
+
+.react-datepicker__header {
+  background-color: #131313 !important;
+  border: none !important;
+}
+
+.react-datepicker__current-month,
+.react-datepicker-time__header,
+.react-datepicker-year-header {
+  color: #8f8f8f !important;
+}
+
+.react-datepicker__year-read-view--down-arrow,
+.react-datepicker__month-read-view--down-arrow,
+.react-datepicker__month-year-read-view--down-arrow,
+.react-datepicker__navigation-icon::before {
+  border-color: #8f8f8f !important;
+}
+
+.react-datepicker__day-name,
+.react-datepicker__day,
+.react-datepicker__time-name {
+  color: #8f8f8f !important;
+}
+
+.react-datepicker__month {
+  background-color: #303030 !important;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background-color: #404040 !important;
+}
+
+.react-datepicker__day:hover {
+  background-color: #282828 !important;
+}
+
+.react-datepicker-popper .react-datepicker__triangle {
+  stroke: #131313;
+}
+
+.react-datepicker-popper[data-placement^='bottom'] .react-datepicker__triangle {
+  fill: #131313;
+  color: #131313;
+}
+
+/* Медиа-запросы для адаптивного дизайна */
+@media (max-width: 1024px) {
+  .App {
+    flex-direction: column;
+  }
+
+  .sidebarWrapper {
+    width: 100%;
+    padding: 0 20px;
+  }
+
+  .sidebar {
+    margin-top: 30px;
+  }
+
+  .sidebar-content {
+    height: auto;
+    padding-bottom: 20px;
+  }
+
+  .main-content {
+    height: 60vh;
+  }
+
+  #mynetwork {
+    height: 60vh;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar h1 {
+    font-size: 20px;
+  }
+
+  .custom-date-input,
+  select,
+  #apiKeyInput,
+  #walletInput {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .tools {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .tools-icon {
+    margin: 5px;
+  }
+
+  #walletList {
+    height: auto;
+    max-height: 40vh;
+  }
+
+  .wallet-address {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .amount-filter-container {
+    flex-direction: column;
+  }
+
+  .amount-block label {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .amount-block label input[type='number'],
+  .amount-block label input[type='range'] {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebarWrapper {
+    padding: 0 10px;
+  }
+
+  .sidebar h1 {
+    font-size: 18px;
+  }
+
+  .custom-date-input,
+  select,
+  #apiKeyInput,
+  #walletInput {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  button {
+    padding: 8px 15px;
+    font-size: 12px;
+  }
+
+  #walletList li {
+    flex-direction: column;
+  }
+
+  .wallet-info {
+    width: 100%;
+  }
+
+  .remove-wallet {
+    align-self: flex-end;
+    margin-top: 5px;
+  }
+}
