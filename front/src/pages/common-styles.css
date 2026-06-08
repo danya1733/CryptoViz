@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+:root {
+  --primary-color: #01a4ff;
+  --background-color: #191919;
+  --input-background: #333;
+  --text-color: #fff;
+  --error-color: #f44336;
+  --success-color: #1c8e02;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.form {
+  background-color: var(--background-color);
+  padding: 33px 23px;
+  border-radius: 19px;
+  text-align: center;
+}
+
+.form h2 {
+  font-size: 22px;
+  margin-top: 23px;
+}
+
+.form p {
+  font-size: 13px;
+  margin-top: 7px;
+}
+
+.form a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.input-wrapper {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 12px 18px 12px 47px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--input-background);
+  color: var(--text-color);
+  font-size: 16px;
+}
+
+.form button {
+  width: 100%;
+  padding: 14px 0;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.form button:hover {
+  background-color: #4280e4;
+}
+
+.message {
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.error-message {
+  background-color: var(--error-color);
+}
+
+.success-message {
+  background-color: var(--success-color);
+}
