@@ -1,8 +1,40 @@
-# React + Vite
+# CryptoViz Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Клиентская часть CryptoViz реализована на React и Vite. Основной экран анализа находится в `src/pages/GraphPage/GraphPage.jsx`; граф строится через `vis-network`.
 
-Currently, two official plugins are available:
+## Основные возможности
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- построение графов переводов для USDT TRC20, BTC, ETH, USDT ERC20 и USDC ERC20;
+- фильтрация графа по дате, сумме и глубине связей;
+- пользовательские метки и иконки адресов;
+- экспорт и импорт состояния анализа;
+- панель анализа графа и выбранной вершины;
+- расчет признаков адресов: возможный депозитный адрес сервиса, возможный сервисный адрес биржи или обменника, обычный адрес, дополнительный связующий признак;
+- очередь запросов к Tronscan API с паузой и обработкой ответа `429`.
+
+## Полезные файлы
+
+- `src/pages/GraphPage/GraphPage.jsx` - загрузка данных, построение графа, фильтры и подключение панели анализа.
+- `src/components/GraphAnalysisPanel.jsx` - отображение метрик графа и выбранной вершины.
+- `src/utils/graphMetrics.js` - расчет метрик и аналитических признаков.
+- `src/utils/tronscanClient.js` - общий клиент Tronscan-запросов с очередью и обработкой rate limit.
+- `scripts/checkGraphMetrics.mjs` - локальная проверка сценариев классификации адресов без внешних API-запросов.
+
+## Логика анализа
+
+- Метрики считаются по видимой части графа, поэтому фильтры суммы и глубины влияют на сводку и свойства выбранной вершины.
+- Сервисный признак по дополнительной проверке срабатывает при `rangeTotal/total >= 10000` или `transactions/totalTransactionCount >= 10000`.
+- Локальный массовый сервисный паттерн срабатывает при `1000` переводов и `100` контрагентов.
+- Депозитный признак срабатывает при `3..20` уникальных отправителях, не более `2` получателях и доле основного получателя `>= 80%` исходящего объема.
+- Количество контрагентов в проверочной выборке показывается как пояснение, но само по себе не делает адрес сервисным.
+- `transferCount` из токеновых балансов и внешние названия сервисов из API не используются как критерии.
+
+## Команды
+
+```bash
+npm run dev
+npm run build
+npm run test:metrics
+```
+
+`npm run test:metrics` не обращается к внешним API. Скрипт проверяет алгоритм классификации на подготовленных данных: депозитный адрес пользователя, сервисный адрес-получатель, крупный отправитель, массовая исходящая раздача и обычный адрес.

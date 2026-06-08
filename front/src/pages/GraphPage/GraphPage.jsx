@@ -1,6 +1,6 @@
 //pages/GraphPage/GraphPage.jsx
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { DataSet, Network } from 'vis-network/standalone/esm/vis-network';
 import 'react-datepicker/dist/react-datepicker.css';
 import './GraphPage.css';
@@ -18,6 +18,9 @@ import WalletInput from '../../components/WalletInput';
 import DepthSelector from '../../components/DepthSelector';
 import AmountFilter from '../../components/AmountFilter';
 import Tools from '../../components/Tools';
+import GraphAnalysisPanel from '../../components/GraphAnalysisPanel';
+import { calculateGraphAnalysis } from '../../utils/graphMetrics';
+import { fetchTronscanJson } from '../../utils/tronscanClient';
 
 function GraphPage() {
   const [userApiKey, setUserApiKey] = useState('');
@@ -53,6 +56,111 @@ function GraphPage() {
   }, [selectedCrypto]);
 
   const [addedWallets, setAddedWallets] = useState([]);
+  const [addressActivityById, setAddressActivityById] = useState({});
+  const activityRequestsRef = useRef(new Set());
+
+  const toSafeNumber = (value) => {
+    const numberValue = Number(value);
+    return Number.isFinite(numberValue) ? numberValue : 0;
+  };
+
+  const summarizeTRC20ActivityTransfers = (address, transfers = []) => {
+    const uniqueSenders = new Set();
+    const uniqueRecipients = new Set();
+    let sampleIncomingCount = 0;
+    let sampleOutgoingCount = 0;
+    let sampleIncomingVolume = 0;
+    let sampleOutgoingVolume = 0;
+
+    transfers.forEach((transfer) => {
+      const decimals = toSafeNumber(transfer.tokenInfo?.tokenDecimal) || 6;
+      const amount = toSafeNumber(transfer.quant) / Math.pow(10, decimals);
+
+      if (transfer.to_address === address) {
+        sampleIncomingCount += 1;
+        sampleIncomingVolume += amount;
+        uniqueSenders.add(transfer.from_address);
+      }
+
+      if (transfer.from_address === address) {
+        sampleOutgoingCount += 1;
+        sampleOutgoingVolume += amount;
+        uniqueRecipients.add(transfer.to_address);
+      }
+    });
+
+    return {
+      sampleTransferCount: transfers.length,
+      sampleIncomingCount,
+      sampleOutgoingCount,
+      sampleUniqueSenderCount: uniqueSenders.size,
+      sampleUniqueRecipientCount: uniqueRecipients.size,
+      sampleIncomingVolume,
+      sampleOutgoingVolume,
+    };
+  };
+
+  const ensureTRC20AddressActivity = async (address) => {
+    const cachedActivity = addressActivityById[address];
+    const hasFreshFailedActivity =
+      cachedActivity?.error && Date.now() - cachedActivity.failedAt < 60000;
+
+    if (
+      !address ||
+      activityRequestsRef.current.has(address) ||
+      (cachedActivity && !cachedActivity.error) ||
+      hasFreshFailedActivity
+    ) {
+      return;
+    }
+
+    activityRequestsRef.current.add(address);
+
+    try {
+      const transferUrl = `https://apilist.tronscan.org/api/token_trc20/transfers?limit=50&start=0&sort=-timestamp&count=true&relatedAddress=${address}`;
+      const accountUrl = `https://apilist.tronscan.org/api/account?address=${address}`;
+
+      const transferData = await fetchTronscanJson(transferUrl);
+      let accountData = {};
+
+      try {
+        accountData = await fetchTronscanJson(accountUrl);
+      } catch (accountError) {
+        console.error('Ошибка при получении счетчиков адреса: ', accountError);
+      }
+
+      const transferSummary = summarizeTRC20ActivityTransfers(
+        address,
+        transferData.token_transfers || [],
+      );
+
+      setAddressActivityById((previousActivity) => ({
+        ...previousActivity,
+        [address]: {
+          address,
+          total: toSafeNumber(transferData.total),
+          rangeTotal: toSafeNumber(transferData.rangeTotal),
+          transactions: toSafeNumber(accountData.transactions),
+          transactionsIn: toSafeNumber(accountData.transactions_in),
+          transactionsOut: toSafeNumber(accountData.transactions_out),
+          totalTransactionCount: toSafeNumber(accountData.totalTransactionCount),
+          ...transferSummary,
+        },
+      }));
+    } catch (error) {
+      console.error('Ошибка при получении аналитики адреса: ', error);
+      setAddressActivityById((previousActivity) => ({
+        ...previousActivity,
+        [address]: {
+          address,
+          error: true,
+          failedAt: Date.now(),
+        },
+      }));
+    } finally {
+      activityRequestsRef.current.delete(address);
+    }
+  };
 
   const fetchAddedWallets = async () => {
     try {
@@ -84,7 +192,11 @@ function GraphPage() {
     edges.clear();
     setWalletLabels({});
     setNodeImages({});
+    setAddressActivityById({});
+    activityRequestsRef.current.clear();
     setSelectedDate('');
+    setSelectedNode(null);
+    refreshGraphAnalysis();
     fetchAddedWallets();
   }, [selectedCrypto]);
 
@@ -255,9 +367,7 @@ function GraphPage() {
   const getTRC20Transfers = async (address) => {
     const url = `https://apilist.tronscan.org/api/token_trc20/transfers?limit=10000000&start=&sort=-timestamp&count=true&relatedAddress=${address}`;
     try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const data = await response.json();
+      const data = await fetchTronscanJson(url);
       data.token_transfers.forEach((transfer) => {
         const transferDate = new Date(transfer.block_ts).getTime();
         // Преобразование выбранной даты из строки в миллисекунды для сравнения
@@ -303,11 +413,18 @@ function GraphPage() {
                 to: toAddress,
                 label: `${quant} USDT`,
                 arrows: 'to',
+                amount: quant,
+                asset: 'USDT',
+                timestamp: transfer.block_ts,
+                txHash: transfer.transaction_id || transfer.hash || '',
+                networkType: selectedCrypto,
               });
             }
           }
         }
       });
+      ensureTRC20AddressActivity(address);
+      refreshGraphAnalysis();
     } catch (error) {
       console.error('Ошибка при получении данных: ', error);
     }
@@ -372,6 +489,11 @@ function GraphPage() {
                         to: txHash,
                         label: `${input.value / Math.pow(10, 8)} BTC`,
                         arrows: 'to',
+                        amount: input.value / Math.pow(10, 8),
+                        asset: 'BTC',
+                        timestamp: transferDate,
+                        txHash,
+                        networkType: selectedCrypto,
                       });
                     }
                   }
@@ -403,6 +525,11 @@ function GraphPage() {
                         to: toAddress,
                         label: `${quant} BTC`,
                         arrows: 'to',
+                        amount: quant,
+                        asset: 'BTC',
+                        timestamp: transferDate,
+                        txHash,
+                        networkType: selectedCrypto,
                       });
                     }
                   }
@@ -415,6 +542,7 @@ function GraphPage() {
         const newVirtualNodes = Object.values(virtualNodes).filter((node) => !nodes.get(node.id));
         nodes.add(newVirtualNodes);
       }
+      refreshGraphAnalysis();
     } catch (error) {
       console.error('Error fetching data: ', error);
     }
@@ -460,11 +588,17 @@ function GraphPage() {
                   to: toAddress,
                   label: `${quant} ETH`,
                   arrows: 'to',
+                  amount: quant,
+                  asset: 'ETH',
+                  timestamp: transferDate,
+                  txHash: transfer.hash || '',
+                  networkType: selectedCrypto,
                 });
               }
             }
           }
         });
+        refreshGraphAnalysis();
       } else {
         console.error('Ошибка при получении данных: ', data.message);
       }
@@ -512,12 +646,18 @@ function GraphPage() {
                     to: toAddress,
                     label: `${quant} ${transfer.tokenSymbol}`,
                     arrows: 'to',
+                    amount: quant,
+                    asset: transfer.tokenSymbol,
+                    timestamp: transferDate,
+                    txHash: transfer.hash || '',
+                    networkType: selectedCrypto,
                   });
                 }
               }
             }
           }
         });
+        refreshGraphAnalysis();
       } else {
         console.error('Ошибка при получении данных: ', data.message);
       }
@@ -759,6 +899,7 @@ function GraphPage() {
           // Обновляем состояние для отображения изменений
           setNodes(nodes);
           setEdges(edges);
+          refreshGraphAnalysis();
         } else {
           console.error('Failed to remove wallet');
         }
@@ -814,6 +955,28 @@ function GraphPage() {
   const [minAmount, setMinAmount] = useState(0);
   const [maxAmount, setMaxAmount] = useState(100000);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [graphRevision, setGraphRevision] = useState(0);
+
+  const refreshGraphAnalysis = () => {
+    setGraphRevision((revision) => revision + 1);
+  };
+
+  const graphAnalysis = useMemo(
+    () => calculateGraphAnalysis(nodes.get(), edges.get(), selectedNode, addressActivityById),
+    [nodes, edges, selectedNode, graphRevision, addressActivityById],
+  );
+
+  const probeAddressKey = (graphAnalysis.probeAddresses || []).join('|');
+
+  useEffect(() => {
+    if (selectedCrypto !== 'usdt' || !probeAddressKey) {
+      return;
+    }
+
+    graphAnalysis.probeAddresses.forEach((address) => {
+      ensureTRC20AddressActivity(address);
+    });
+  }, [selectedCrypto, probeAddressKey]);
 
   const applyFilters = () => {
     // Сбрасываем скрытие для всех узлов и ребер
@@ -833,7 +996,9 @@ function GraphPage() {
 
     // Применяем фильтрацию по сумме
     const filteredEdgesByAmount = edges.get().map((edge) => {
-      const amount = parseFloat(edge.label.split(' ')[0]);
+      const amount = Number.isFinite(Number(edge.amount))
+        ? Number(edge.amount)
+        : parseFloat(edge.label.split(' ')[0]);
       return {
         ...edge,
         hidden: amount < minAmount || amount > maxAmount,
@@ -893,6 +1058,7 @@ function GraphPage() {
     // Применяем отфильтрованные узлы и ребра к графу
     nodes.update(filteredNodesByAmount);
     edges.update(filteredEdgesByAmount);
+    refreshGraphAnalysis();
   };
 
   useEffect(() => {
@@ -975,6 +1141,11 @@ function GraphPage() {
         </div>
       </div>
       <div className="main-content">
+        <GraphAnalysisPanel
+          analysis={graphAnalysis}
+          selectedNode={selectedNode}
+          walletLabels={walletLabels}
+        />
         <div id="mynetwork" ref={networkRef} />
       </div>
 
