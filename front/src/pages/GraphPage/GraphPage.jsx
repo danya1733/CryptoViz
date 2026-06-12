@@ -22,6 +22,16 @@ import GraphAnalysisPanel from '../../components/GraphAnalysisPanel';
 import { calculateGraphAnalysis } from '../../utils/graphMetrics';
 import { fetchTronscanJson } from '../../utils/tronscanClient';
 
+const GRAPH_COLORS = {
+  wallet: '#38bdf8',
+  selectedWallet: '#f59e0b',
+  transaction: '#64748b',
+  nodeBorder: '#ffffff',
+  nodeLabel: '#162033',
+  edge: '#6f8fb8',
+  edgeHighlight: '#2563eb',
+};
+
 function GraphPage() {
   const [userApiKey, setUserApiKey] = useState('');
   const [selectedCrypto, setSelectedCrypto] = useState('usdt');
@@ -251,7 +261,7 @@ function GraphPage() {
         nodeImage = isAddedWallet ? salaryImage : generalImage;
       }
 
-      const nodeColor = isAddedWallet ? 'orange' : 'lightblue';
+      const nodeColor = isAddedWallet ? GRAPH_COLORS.selectedWallet : GRAPH_COLORS.wallet;
 
       // Проверяем, есть ли пользовательская картинка для этого узла
       if (nodeImages[nodeId]) {
@@ -276,7 +286,7 @@ function GraphPage() {
         ...node,
         shape: 'image',
         image: nodeImage,
-        color: { background: nodeColor, border: nodeColor },
+        color: { background: nodeColor, border: GRAPH_COLORS.nodeBorder },
         brokenImage: nodeColor, // Этот параметр используется для задания цвета, если изображение не загрузится
       });
     });
@@ -294,17 +304,33 @@ function GraphPage() {
       nodes: {
         shape: 'dot',
         size: 30,
-        font: { size: 14, color: '#ffffff' },
+        font: { size: 14, color: GRAPH_COLORS.nodeLabel, face: 'Inter' },
         borderWidth: 2,
-        color: { border: '#222222', background: '#666666' },
-        shadow: { enabled: true, color: 'rgba(0,0,0,0.5)', size: 10, x: 5, y: 5 },
+        color: {
+          border: GRAPH_COLORS.nodeBorder,
+          background: GRAPH_COLORS.transaction,
+          highlight: { border: GRAPH_COLORS.edgeHighlight, background: '#dbeafe' },
+          hover: { border: GRAPH_COLORS.edgeHighlight, background: '#eaf2ff' },
+        },
+        shadow: { enabled: true, color: 'rgba(37, 62, 101, 0.2)', size: 10, x: 0, y: 4 },
       },
       edges: {
         width: 2,
         length: 300,
-        color: '#ffb347',
-        shadow: true,
-        font: { size: 12, color: '#131313' },
+        color: {
+          color: GRAPH_COLORS.edge,
+          highlight: GRAPH_COLORS.edgeHighlight,
+          hover: GRAPH_COLORS.edgeHighlight,
+          opacity: 0.9,
+        },
+        shadow: false,
+        font: {
+          size: 12,
+          color: GRAPH_COLORS.nodeLabel,
+          face: 'Inter',
+          background: 'rgba(248, 250, 253, 0.9)',
+          strokeWidth: 0,
+        },
         smooth: { type: 'dynamic' },
       },
       physics: {
@@ -384,8 +410,12 @@ function GraphPage() {
             const edgeId = `from:${fromAddress}_to:${toAddress}_quant:${quant}`;
 
             // Определяем цвет для добавленных и не добавленных кошельков
-            const fromColor = addedWallets.includes(fromAddress) ? 'orange' : 'lightblue';
-            const toColor = addedWallets.includes(toAddress) ? 'orange' : 'lightblue';
+            const fromColor = addedWallets.includes(fromAddress)
+              ? GRAPH_COLORS.selectedWallet
+              : GRAPH_COLORS.wallet;
+            const toColor = addedWallets.includes(toAddress)
+              ? GRAPH_COLORS.selectedWallet
+              : GRAPH_COLORS.wallet;
 
             // Проверяем, существует ли уже такое ребро
             if (!edges.get(edgeId)) {
@@ -458,7 +488,7 @@ function GraphPage() {
                   virtualNodes[txHash] = {
                     id: txHash,
                     label: `Transaction ${txHash}`,
-                    color: { background: 'gray' },
+                    color: { background: GRAPH_COLORS.transaction },
                     shape: 'dot',
                     nodeType: 'transaction',
                   };
@@ -469,7 +499,9 @@ function GraphPage() {
                 if (input.recipient) {
                   const fromAddress = input.recipient;
                   const edgeId = `from:${fromAddress}_to:${txHash}_quant:${input.value}`;
-                  const fromColor = addedWallets.includes(fromAddress) ? 'orange' : 'lightblue';
+                  const fromColor = addedWallets.includes(fromAddress)
+                    ? GRAPH_COLORS.selectedWallet
+                    : GRAPH_COLORS.wallet;
 
                   if (!edges.get(edgeId)) {
                     if (!nodes.get(fromAddress)) {
@@ -504,7 +536,9 @@ function GraphPage() {
                 const toAddress = output.recipient;
                 const quant = output.value / Math.pow(10, 8);
                 const edgeId = `from:${txHash}_to:${toAddress}_quant:${quant}`;
-                const toColor = addedWallets.includes(toAddress) ? 'orange' : 'lightblue';
+                const toColor = addedWallets.includes(toAddress)
+                  ? GRAPH_COLORS.selectedWallet
+                  : GRAPH_COLORS.wallet;
 
                 if (quant > 0.00000000000000001) {
                   if (!edges.get(edgeId)) {
@@ -565,8 +599,12 @@ function GraphPage() {
               // Фильтруем транзакции с количеством больше 0.001 ETH
               const fromAddress = transfer.from;
               const edgeId = `from:${fromAddress}_to:${toAddress}_quant:${quant}`;
-              const fromColor = addedWallets.includes(fromAddress) ? 'orange' : 'lightblue';
-              const toColor = addedWallets.includes(toAddress) ? 'orange' : 'lightblue';
+              const fromColor = addedWallets.includes(fromAddress)
+                ? GRAPH_COLORS.selectedWallet
+                : GRAPH_COLORS.wallet;
+              const toColor = addedWallets.includes(toAddress)
+                ? GRAPH_COLORS.selectedWallet
+                : GRAPH_COLORS.wallet;
               if (!edges.get(edgeId)) {
                 if (!nodes.get(fromAddress)) {
                   nodes.add({
@@ -623,8 +661,12 @@ function GraphPage() {
               if (quant > 0.001) {
                 const fromAddress = transfer.from;
                 const edgeId = `from:${fromAddress}_to:${toAddress}_quant:${quant}`;
-                const fromColor = addedWallets.includes(fromAddress) ? 'orange' : 'lightblue';
-                const toColor = addedWallets.includes(toAddress) ? 'orange' : 'lightblue';
+                const fromColor = addedWallets.includes(fromAddress)
+                  ? GRAPH_COLORS.selectedWallet
+                  : GRAPH_COLORS.wallet;
+                const toColor = addedWallets.includes(toAddress)
+                  ? GRAPH_COLORS.selectedWallet
+                  : GRAPH_COLORS.wallet;
                 if (!edges.get(edgeId)) {
                   if (!nodes.get(fromAddress)) {
                     nodes.add({

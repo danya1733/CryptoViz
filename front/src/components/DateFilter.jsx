@@ -1,8 +1,8 @@
-import React from 'react';
-import DatePicker,{registerLocale } from 'react-datepicker';
-import ru from "date-fns/locale/ru";
+import DatePicker, { registerLocale } from 'react-datepicker';
+import { format, parseISO } from 'date-fns';
+import ru from 'date-fns/locale/ru';
 
-registerLocale("ru", ru);
+registerLocale('ru', ru);
 const DateFilter = ({ selectedDate, setSelectedDate, nodes, edges, addedWallets, updateNodeColorsAndImages, updateGraphLabels, getTRC20Transfers, getBTCTransfers, getETHTransfers, getERC20Transfers, selectedCrypto }) => {
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -32,19 +32,28 @@ const DateFilter = ({ selectedDate, setSelectedDate, nodes, edges, addedWallets,
     updateNodeColorsAndImages();
   };
   const handleDateChange = async (date) => {
-    const formattedDate = date ? date.toISOString().split('T')[0] : '';
+    const formattedDate = date ? format(date, 'yyyy-MM-dd') : '';
     setSelectedDate(formattedDate);
     await drawGraph();
   };
   return (
     <div id="date-filter-container">
       <DatePicker
-        selected={selectedDate ? new Date(selectedDate) : null}
+        selected={selectedDate ? parseISO(selectedDate) : null}
         onChange={handleDateChange}
-        wrapperClassName='date-picker'
+        wrapperClassName="date-picker"
         locale="ru"
-        value={selectedDate || ''} // Добавьте эту строку
-        customInput={<input type="date" className="custom-date-input" />}
+        dateFormat="dd.MM.yyyy"
+        placeholderText="ДД.ММ.ГГГГ"
+        customInput={
+          <input
+            type="text"
+            className="custom-date-input"
+            inputMode="none"
+            autoComplete="off"
+            readOnly
+          />
+        }
       />
 
     </div>
